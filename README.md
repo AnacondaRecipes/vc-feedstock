@@ -1,6 +1,8 @@
 About vc-feedstock
 ==================
 
+The Windows sysroot package.
+
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/vc-feedstock/blob/main/LICENSE.txt)
 
 

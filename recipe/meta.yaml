@@ -1,4 +1,6 @@
-# version numbering is explained at https://stackoverflow.com/questions/42730478/version-numbers-for-visual-studio-2017-boost-and-cmake
+# Version numbering is explained at:
+# https://stackoverflow.com/questions/42730478/version-numbers-for-visual-studio-2017-boost-and-cmake
+# https://learn.microsoft.com/en-us/cpp/overview/compiler-versions
 
 # VS2017 is fundamentally compatible with VS2015.  We name our package
 # vs2015_runtime so that it can't be mixed up with the runtime from
@@ -7,18 +9,18 @@
 # with things compiled with VS2015.
 {% set runtime_year = "2015" %}
 
-{% if vsyear is not defined %}
-{% set vsyear = "" %}
-{% set runtime_version = "14.40.33810" %}
-{% set cl_version = "19.40" %}
-{% set vcver = "" %}
+{% if not vsyear %}
+  {% set vsyear = "" %}
+  {% set runtime_version = "14.40.33810" %}
+  {% set cl_version = "19.40" %}
+  {% set vcver = "" %}
 {% endif %}
 
 {% set vc_major = vcver.split(".")[0] %}
-{% set vcvars_ver_maj = cl_version.split(".")[0]|int - 5 %}
-{% set vcvars_ver_min = cl_version.split(".")[1]|int %}
+{% set vcvars_ver_maj = cl_version.split(".")[0] | int - 5 %}
+{% set vcvars_ver_min = cl_version.split(".")[1] | int %}
 {% set vcvars_ver = vcvars_ver_maj ~ "." ~ vcvars_ver_min %}
-{% set build_num = 26 %}
+{% set build_num = 9 %}
 
 package:
   name: vs{{ vsyear }}
@@ -44,8 +46,7 @@ outputs:
     version: {{ runtime_version }}
     script: vc_repack.py
     script_interpreter: >-
-      python -m vc_repack --extract --version {{ runtime_version }}
-      --target-platform {{ cross_target_platform }}
+      python -m vc_repack --extract --version {{ runtime_version }} --target-platform {{ cross_target_platform }}
     build:
       skip: True  # [cross_target_platform != target_platform]
       binary_relocation: false
@@ -61,7 +62,9 @@ outputs:
         - p7zip     # [not build_platform.startswith("win")]
       host:
       run:
-        # Need ucrt for windows<10 and when the VC runtime does not bundle it
+        # Need ucrt for Windows<10 and when the VC runtime does not bundle it.
+        # Can't get vs2022 on Windows<10 so we're good there. Will probably need a new version set here if/when a new
+        # vs version comes out that drops support for Windows 10.
         - ucrt >=10.0.20348.0  # [(vsver >=17 or (vsver == 16 and update_version >= 10)) and (cross_target_platform == "win-64" or cross_target_platform == "win-32")]
       run_constrained:
         - vs{{ runtime_year }}_runtime {{ runtime_version }}.* *_{{ build_num }}  # [cross_target_platform == "win-64" or cross_target_platform == "win-32"]
@@ -159,12 +162,10 @@ outputs:
   - name: vc
     version: {{ vcver }}
     build:
-      track_features:
-        - vc{{ vc_major }}
       skip: True  # [cross_target_platform != target_platform]
     requirements:
       run:
-        # Set lower bound for runtime (no upper bound).  Upper bound
+        # Set lower bound for runtime (no upper bound). Upper bound
         # is still present, but it's part of the run_exports for the
         # compiler: assume that when vcver's major version changes,
         # MSFT has broken our binary compatibility.
@@ -194,11 +195,11 @@ outputs:
       --activate-vcvars-ver {{ vcvars_ver }}
     build:
       track_features:
-        - vc{{ vc_major }}
+        - vs{{ vsyear }}_{{ cross_target_platform }}_{{ cl_version }}
       run_exports:
         strong:
-          # compatible within major version.  This is MSFT's
-          # incrementing of the UCRT version.  It was 14.0 with
+          # compatible within major version. This is MSFT's
+          # incrementing of the UCRT version. It was 14.0 with
           # VS2015, and 14.1 with VS2017 - if the major version
           # changes, we're assuming that binary compatibility breaks.
           # This has a minimum bound equal to vcver, so building with
@@ -228,11 +229,11 @@ outputs:
     version: "{{ vsyear }}.{{ update_version }}"
     build:
       track_features:
-        - vc{{ vc_major }}
+        - vs_{{ cross_target_platform }}_{{ vsyear }}.{{ update_version }}
       run_exports:
         strong:
-          # compatible within major version.  This is MSFT's
-          # incrementing of the UCRT version.  It was 14.0 with
+          # compatible within major version. This is MSFT's
+          # incrementing of the UCRT version. It was 14.0 with
           # VS2015, and 14.1 with VS2017 - if the major version
           # changes, we're assuming that binary compatibility breaks.
           # This has a minimum bound equal to vcver, so building with
