@@ -52,8 +52,7 @@ class Environment:
             raise AttributeError
 
 
-# This class and the subs() function balow are used for substituting
-# variables in the activate.bat template
+# This class and the subs() function below are used for substituting variables in the activate.bat template
 class AtTemplate(string.Template):
     delimiter = "@"
 
@@ -358,19 +357,15 @@ def main():
         else:
             raise RuntimeError(f"Architecture {args.target_platform} not supported")
     elif args.activate:
-        # Populate the activate.bat template, which is used to include
-        # the Visual Studio tools into the conda environment.
-        targetdir = os.path.join(env.prefix, "etc", "conda", "activate.d")
-        os.makedirs(targetdir)
-        with open(os.path.join(env.recipe_dir, "activate.bat"), "r") as r:
-            with open(
-                os.path.join(
-                    targetdir, f"vs{args.activate_year}_compiler_vars.bat"
-                ),
-                "w",
-            ) as w:
-                for line in r:
-                    w.write(subs(line, args))
+        # Populate the activate.bat template, which is used to include the Visual Studio tools into the conda
+        # environment.
+        for script_type in ["activate", "deactivate"]:
+            targetdir = os.path.join(env.prefix, "etc", "conda", f"{script_type}.d")
+            os.makedirs(targetdir)
+            with open(os.path.join(env.recipe_dir, f"{script_type}.bat"), "r") as r:
+                with open(os.path.join(targetdir, f"vs{args.activate_year}_compiler_vars.bat"), "w") as w:
+                    for line in r:
+                        w.write(subs(line, args))
 
 
 if __name__ == "__main__":
