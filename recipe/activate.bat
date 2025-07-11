@@ -1,7 +1,5 @@
 @@echo on
 
-setlocal EnableDelayedExpansion
-
 :: Set env vars that tell distutils to use the compiler that we put on path
 SET DISTUTILS_USE_SDK=1
 :: This is probably not good. It is for the pre-UCRT msvccompiler.py *not* _msvccompiler.py
@@ -79,7 +77,7 @@ call :GetWin10SdkDir
 for /F %%i in ('dir /ON /B "%WindowsSdkDir%\include\10.*"') DO (
   SET WindowsSDKVer=%%~i
 )
-if !ERRORLEVEL! equ 1 (
+if %ERRORLEVEL% equ 1 (
     echo "Didn't find any windows 10 SDK. I'm not sure if things will work, but let's try..."
 ) else (
     echo Windows SDK version found as: "%WindowsSDKVer%"
@@ -138,6 +136,7 @@ IF "%USE_NEW_CMAKE_GEN_SYNTAX%" == "1" (
 )
 
 pushd %VSINSTALLDIR%
+set "USE_DESIRED=0"
 if "%LATEST_VS:~0,5%" LSS "@{vcvars_ver}" (
   :: Installed latest VS is older than the conda package version, which means the
   :: lower bound of run_export is too high, but there's nothing we can do.
@@ -145,10 +144,13 @@ if "%LATEST_VS:~0,5%" LSS "@{vcvars_ver}" (
   CALL "VC\Auxiliary\Build\vcvars%VCVARSBAT%.bat" -vcvars_ver=%LATEST_VS:~0,5% %WindowsSDKVer%
 ) else (
   :: Try the desired version first.
+  set "USE_DESIRED=1"
   CALL "VC\Auxiliary\Build\vcvars%VCVARSBAT%.bat" -vcvars_ver=@{vcvars_ver} %WindowsSDKVer%
+)
 
-  :: Fall back on the latest installed version if the version we're looking for is not there.
-  if !ERRORLEVEL! neq 0 (
+:: Fall back on the latest installed version if the version we're looking for is not there.
+if %USE_DESIRED% equ 1 (
+  if %ERRORLEVEL% neq 0 (
     echo [WARNING:vs@{year}_compiler_vars.bat] Failed to activate the intended toolset: v@{vcvars_ver}. Falling back on the latest found: v%LATEST_VS:~0,5%
     CALL "VC\Auxiliary\Build\vcvars%VCVARSBAT%.bat" -vcvars_ver=%LATEST_VS:~0,5% %WindowsSDKVer%
   )
@@ -157,8 +159,8 @@ if "%LATEST_VS:~0,5%" LSS "@{vcvars_ver}" (
 :: if this didn't work and CONDA_BUILD is not set, we're outside
 :: conda-forge CI so retry without vcvars_ver, which is going to
 :: fail on local installs that don't match our exact versions
-if !ERRORLEVEL! neq 0 (
-  if "!CONDA_BUILD!" == "" (
+if %ERRORLEVEL% neq 0 (
+  if "%CONDA_BUILD%" == "" (
     CALL "VC\Auxiliary\Build\vcvars%VCVARSBAT%.bat"
   )
 )
@@ -166,10 +168,10 @@ popd
 
 :GetWin10SdkDir
 call :GetWin10SdkDirHelper HKLM\SOFTWARE\Wow6432Node > nul 2>&1
-if !ERRORLEVEL! equ 1 call :GetWin10SdkDirHelper HKCU\SOFTWARE\Wow6432Node > nul 2>&1
-if !ERRORLEVEL! equ 1 call :GetWin10SdkDirHelper HKLM\SOFTWARE > nul 2>&1
-if !ERRORLEVEL! equ 1 call :GetWin10SdkDirHelper HKCU\SOFTWARE > nul 2>&1
-if !ERRORLEVEL! equ 1 exit /B !ERRORLEVEL!
+if %ERRORLEVEL% equ 1 call :GetWin10SdkDirHelper HKCU\SOFTWARE\Wow6432Node > nul 2>&1
+if %ERRORLEVEL% equ 1 call :GetWin10SdkDirHelper HKLM\SOFTWARE > nul 2>&1
+if %ERRORLEVEL% equ 1 call :GetWin10SdkDirHelper HKCU\SOFTWARE > nul 2>&1
+if %ERRORLEVEL% equ 1 exit /B %ERRORLEVEL%
 exit /B 0
 
 :GetWin10SdkDirHelper
