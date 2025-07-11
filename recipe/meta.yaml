@@ -20,7 +20,7 @@
 {% set vcvars_ver_maj = cl_version.split(".")[0] | int - 5 %}
 {% set vcvars_ver_min = cl_version.split(".")[1] | int %}
 {% set vcvars_ver = vcvars_ver_maj ~ "." ~ vcvars_ver_min %}
-{% set build_num = 9 %}
+{% set build_num = 10 %}
 
 package:
   name: vs{{ vsyear }}
@@ -39,7 +39,7 @@ source:
 
 build:
   number: {{ build_num }}
-  skip: True  # [not win]
+  skip: True  # [unix]
 
 outputs:
   - name: vc{{ vc_major }}_runtime
