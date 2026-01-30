@@ -65,9 +65,9 @@ outputs:
         # Need ucrt for Windows<10 and when the VC runtime does not bundle it.
         # Can't get vs2022 on Windows<10 so we're good there. Will probably need a new version set here if/when a new
         # vs version comes out that drops support for Windows 10.
-        - ucrt >=10.0.20348.0  # [(vsver >=17 or (vsver == 16 and update_version >= 10))]
+        - ucrt >=10.0.20348.0  # [(vsver >=17 or (vsver == 16 and update_version >= 10)) and (cross_target_platform == "win-64" or cross_target_platform == "win-32")]
       run_constrained:
-        - vs{{ runtime_year }}_runtime {{ runtime_version }}.* *_{{ build_num }}
+        - vs{{ runtime_year }}_runtime {{ runtime_version }}.* *_{{ build_num }}  # [cross_target_platform == "win-64" or cross_target_platform == "win-32"]
     about:
       summary: >-
         MSVC runtimes associated with cl.exe version {{ cl_version }}
@@ -129,9 +129,8 @@ outputs:
             'ucrtbase.dll',
             'vcamp140.dll',
             'vccorlib140.dll',
+            'vcomp140.dll',
             'vcruntime140.dll',
-        ] + (cross_target_platform != "win-arm64") * [
-            'vcomp140.dll',  # OpenMP runtime not included in ARM64 redistributable
         ] + (vsyear | int >= 2019) * [
             'msvcp140_atomic_wait.dll',
             'msvcp140_codecvt_ids.dll',
