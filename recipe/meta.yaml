@@ -40,6 +40,7 @@ source:
 build:
   number: {{ build_num }}
   skip: True  # [unix]
+  skip: True  # [cross_target_platform != target_platform]
 
 outputs:
   - name: vc{{ vc_major }}_runtime
