@@ -1,4 +1,2 @@
-staging_channel_upload_target: openmp_mutex_testing
-
 channels:
-  - https://staging.continuum.io/pbp/openmp_mutex_testing
+  - build
