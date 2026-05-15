@@ -68,13 +68,13 @@ outputs:
         - "*.DLL"
       run_exports:
         strong:
-          - _openmp_mutex *_msvc
+          - _openmp_mutex * *_msvc
           - {{ pin_subpackage("vcomp" ~ vc_major, max_pin=None) }}
     requirements:
       build:
       host:
       run:
-        - _openmp_mutex *_msvc
+        - _openmp_mutex * *_msvc
         # Need ucrt for Windows<10 and when the VC runtime does not bundle it.
         # Can't get vs2022 on Windows<10 so we're good there. Will probably need a new version set here if/when a new
         # vs version comes out that drops support for Windows 10.
