@@ -1,2 +1,3 @@
 channels:
-  - build
+  - https://staging.continuum.io/pbp/fs/_openmp_mutex-feedstock/pr2/6bb2abb
+  - https://staging.continuum.io/pbp/openmp-mutex-rework-2
