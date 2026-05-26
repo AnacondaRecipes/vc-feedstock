@@ -20,7 +20,7 @@
 {% set vcvars_ver_maj = cl_version.split(".")[0] | int - 5 %}
 {% set vcvars_ver_min = cl_version.split(".")[1] | int %}
 {% set vcvars_ver = vcvars_ver_maj ~ "." ~ vcvars_ver_min %}
-{% set build_num = 12 %}
+{% set build_num = 13 %}
 
 package:
   name: vs{{ vsyear }}
@@ -73,8 +73,7 @@ outputs:
     requirements:
       build:
       host:
-      run:
-        - _openmp_mutex * *_msvc
+      run:      
         # Need ucrt for Windows<10 and when the VC runtime does not bundle it.
         # Can't get vs2022 on Windows<10 so we're good there. Will probably need a new version set here if/when a new
         # vs version comes out that drops support for Windows 10.
@@ -113,7 +112,9 @@ outputs:
     requirements:
       build:
       host:
+        - {{ pin_subpackage("vcomp" ~ vc_major, exact=True) }}
       run:
+        - {{ pin_subpackage("vcomp" ~ vc_major, exact=True) }}
         # Need ucrt for Windows<10 and when the VC runtime does not bundle it.
         # Can't get vs2022 on Windows<10 so we're good there. Will probably need a new version set here if/when a new
         # vs version comes out that drops support for Windows 10.
